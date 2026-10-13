@@ -1,0 +1,324 @@
+<title>FintechMark1 Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: sticky section nav on top, single reading column of briefing "panels"; idea cards in a 2-col grid */
+:root{
+  --bg:#f5f6fa; --panel:#ffffff; --fg:#161a2e; --muted:#5b6078; --line:#dde0ea;
+  --accent:#d6453d; --accent-soft:#fbe9e7; --ok:#1f7a55; --ok-soft:#e3f3ec; --warn:#a86a00; --warn-soft:#fbf0dc;
+  --display:"Familjen Grotesk","Segoe UI",system-ui,sans-serif;
+  --body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1220; --panel:#171b2e; --fg:#e8e9f2; --muted:#9a9fb8; --line:#2a2f47;
+  --accent:#ff7a6e; --accent-soft:#3a1f22; --ok:#5fd3a0; --ok-soft:#173329; --warn:#f0b54a; --warn-soft:#3a2c12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1220; --panel:#171b2e; --fg:#e8e9f2; --muted:#9a9fb8; --line:#2a2f47;
+  --accent:#ff7a6e; --accent-soft:#3a1f22; --ok:#5fd3a0; --ok-soft:#173329; --warn:#f0b54a; --warn-soft:#3a2c12; color-scheme:dark}
+
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:980px;margin:0 auto;padding-inline:20px;padding-block:0 64px}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+nav .in{max-width:980px;margin:0 auto;padding:10px 20px;display:flex;gap:6px 16px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+nav a{color:var(--muted);text-decoration:none}
+nav a:hover,nav a:focus-visible{color:var(--accent)}
+header{padding-block:36px 20px;display:grid;gap:10px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--display);font-size:clamp(32px,6vw,52px);line-height:1.05;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-size:26px;margin:0 0 4px;text-wrap:balance}
+h3{font-family:var(--display);font-size:19px;margin:0;text-wrap:balance}
+p{margin:0}
+.lede{color:var(--muted);max-width:65ch}
+.clock{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.chip{font-family:var(--mono);font-size:12.5px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel)}
+.chip.hot{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+section{padding-block:28px;border-top:1px solid var(--line);display:grid;gap:16px;scroll-margin-top:52px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
+.big{font-family:var(--display);font-size:38px;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.small{font-size:14px;color:var(--muted)}
+.mono{font-family:var(--mono);font-size:13px}
+.label{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.win{font-size:14.5px;border-left:3px solid var(--accent);padding-left:10px;color:var(--fg)}
+.tl{display:grid;gap:0}
+.tl div{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.tl div:last-child{border-bottom:0}
+.tl b{font-family:var(--mono);color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;width:100%;font-size:15px}
+.tablewrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.red{background:var(--accent-soft);color:var(--accent)}
+.idea.pick{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.idea .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.idea dl{display:grid;grid-template-columns:78px 1fr;gap:4px 10px;margin:0;font-size:14.5px}
+.idea dt{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding-top:3px}
+.idea dd{margin:0;min-width:0}
+ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.callout{background:var(--accent-soft);border-radius:10px;padding:14px 16px;display:grid;gap:6px}
+a{color:var(--accent)}
+.track{display:grid;gap:10px}
+.track .an{font-style:italic;color:var(--muted)}
+details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+details summary{cursor:pointer;font-family:var(--display);font-size:18px;font-weight:700}
+details[open] summary{margin-bottom:10px}
+details .body{display:grid;gap:10px;font-size:15px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+</style>
+
+<nav><div class="in">
+  <a href="#rules">Rules</a><a href="#judges">Judges</a><a href="#sponsors">Sponsors</a><a href="#tracks">Tracks</a><a href="#ideas">Fraud ideas</a><a href="#next">Next</a>
+</div></nav>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Fintech Hackathon · London · 13 Oct 2026 · Singapore Global Network × LSE Generate</div>
+  <h1>FintechMark1 Hub</h1>
+  <p class="lede">Everything gathered so far: rules, judges, sponsors, the three tracks explained for beginners, and our shortlist of fraud ideas. Theme of the night: <b>start where money gets stuck.</b></p>
+  <div class="clock">
+    <span class="chip">Build from 18:45</span>
+    <span class="chip hot">Submit by 20:10 (slide) · Luma says 20:30</span>
+    <span class="chip">Winners 21:20</span>
+    <span class="chip">Track chosen: Fraud &amp; Security</span>
+  </div>
+</header>
+
+<section id="rules">
+  <div><div class="eyebrow">How you're judged</div><h2>Four criteria, scored 1–5, weighted to 100</h2></div>
+  <div class="grid4">
+    <div class="card"><div class="big">30%</div><h3>Real-world impact</h3><p class="small">A named person with a real money problem.</p></div>
+    <div class="card"><div class="big">25%</div><h3>Originality</h3><p class="small">Something new, said in one sentence.</p></div>
+    <div class="card"><div class="big">25%</div><h3>Execution</h3><p class="small">One flow that works, start to finish.</p></div>
+    <div class="card"><div class="big">20%</div><h3>Trust</h3><p class="small">What could go wrong, and how users stay safe.</p></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="label">The 1:30 demo video</div>
+      <div class="tl">
+        <div><b>0:00</b><span><b>The person.</b> "Meet [name]. [Their money problem]."</span></div>
+        <div><b>0:15</b><span><b>Why now.</b> "Until now [this was hard]. Now [what changed]."</span></div>
+        <div><b>0:25</b><span><b>The demo.</b> One flow, live. The wow moment by 1:00.</span></div>
+        <div><b>1:05</b><span><b>Trust.</b> "Real: [this]. Mocked: [that]."</span></div>
+        <div><b>1:20</b><span><b>Close.</b> Who pays, and why. Stop at 1:30.</span></div>
+      </div>
+      <p class="small">Judges stop watching at 1:30. Record a backup take.</p>
+    </div>
+    <div class="card">
+      <div class="label">Submit at shiptonight.com/submit</div>
+      <ul>
+        <li>Track (<span class="mono">fraud</span>), title ≤ 90 chars, tagline ≤ 160</li>
+        <li>What it does and who it helps (description ≤ 2,000)</li>
+        <li>Team of 1–4, LinkedIn links</li>
+        <li>Loom or YouTube link, ≤ 1:30, viewable in a private window</li>
+        <li>Optional: team name, demo link (our GitHub)</li>
+        <li>One submission per team, editable until close. Keep the edit link private.</li>
+      </ul>
+      <p class="small">Repo: <a href="https://github.com/cklaw25/fintechmark1">github.com/cklaw25/fintechmark1</a></p>
+    </div>
+  </div>
+</section>
+
+<section id="judges">
+  <div><div class="eyebrow">Who's scoring</div><h2>Judges and what wins each one over</h2><p class="lede">The red lines are quoted from their slide. Pitch one sentence to each of them.</p></div>
+  <div class="grid2">
+    <div class="card"><h3>Daniele Parla</h3><div class="label">Private credit analytics · DWS</div><p class="small">Prices loans for lenders. Thinks in risk, losses and who carries them.</p><p class="win">Slide line cut off. Speak to cost of losses: "banks reimburse every scam they miss."</p></div>
+    <div class="card"><h3>Till Tornieporth</h3><div class="label">Private equity · Verdane</div><p class="small">Built a company himself. Now backs fast-growing tech.</p><p class="win">"A path from tonight to thousands."</p><p class="small">Show who buys it and how it spreads (bank, marketplace, uni).</p></div>
+    <div class="card"><h3>Anna Zverkova</h3><div class="label">Product manager · Experian</div><p class="small">Builds products on one of the world's biggest pools of financial data. Experian also sells fraud and identity checks.</p><p class="win">"Data used right, and responsibly."</p><p class="small">Consent, minimum data, nothing stored, no bank logins.</p></div>
+    <div class="card"><h3>Luka Dadiani</h3><div class="label">Insurtech product · Howden HX · co-host</div><p class="small">Has launched insurance startups from inside Howden's innovation lab.</p><p class="win">"A flow so smooth it needs no pitch."</p><p class="small">One screen, one input, one clear verdict.</p></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="label">Side track</div><h3>Best Use of Zaro</h3><p class="small">Judged by the Zaro team. See below for what Zaro is.</p></div>
+    <div class="card"><div class="label">Side track</div><h3>Best Use of Fotor</h3><p class="small">Judged by Nora Chen for Fotor.</p></div>
+  </div>
+</section>
+
+<section id="sponsors">
+  <div><div class="eyebrow">Made possible by</div><h2>Sponsors, in plain words</h2></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Who</th><th>Role</th><th>What they actually do</th><th>Angle for us</th></tr></thead>
+    <tbody>
+      <tr><td><b>Singapore Global Network</b></td><td>Presenter</td><td>Part of Singapore's Economic Development Board. A network of 250k+ professionals linked to Singapore.</td><td>Cross-border and international users (students, migrants) make good "named persons".</td></tr>
+      <tr><td><b>LSE Generate</b></td><td>With</td><td>LSE's startup and entrepreneurship hub.</td><td>Students are a real fraud target (rent scams, money-mule recruitment).</td></tr>
+      <tr><td><b>Zaro</b></td><td>Token sponsor</td><td>London AI startup, $5.1M led by Cherry Ventures (June 2026). A company's shared AI memory, explained below.</td><td>Make every AI verdict cite its evidence. Ask the Zaro team at the event what the tokens unlock.</td></tr>
+      <tr><td><b>Fotor</b></td><td>Creative partner</td><td>Online photo editor with AI tools: generator, background and object remover, "brush and describe" generative edits, enhancer. 800M+ users claimed. Has a developer API at developers.fotor.com.</td><td>The same tools make fake receipts and payment screenshots in seconds. We could use Fotor to make our fake test set, or for demo visuals.</td></tr>
+      <tr><td><b>VibeDex</b></td><td>Insights partner</td><td>London site that independently benchmarks AI tools. Weekly leaderboards for image and video generation models. Sells no API, takes no sponsors.</td><td>Useful for "which AI is best at X" claims. Not a side track. Likely no build angle.</td></tr>
+      <tr><td><b>Foldo</b></td><td>Build partner</td><td>Couldn't confirm from search. Probably the build or prototyping tool offered tonight.</td><td>Ask at the event what Foldo gives builders.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout">
+    <div class="label">Your Zaro guess: "a Google Doc workspace where everyone helps the AI"</div>
+    <p><b>Close, with three corrections.</b> Picture a <b>shared company drive of plain text files that AI agents use as their memory</b>, closer to Git for company knowledge than to Google Docs.</p>
+    <ul>
+      <li><b>Not live co-editing.</b> Every change makes a new version, records who made it (person or agent), and can be rolled back.</li>
+      <li><b>Answers come with receipts.</b> When the AI answers, it links the exact file and version it read. Fix a file once and every future answer uses the fix.</li>
+      <li><b>Permissions.</b> Folder-level read, write or deny for people and agents alike. An agent never gets more access than the person who set it up. All activity is logged.</li>
+    </ul>
+    <p class="small">Connects to Salesforce, SharePoint, Slack and Snowflake. They mention an API for reading and writing the files but publish no docs, so ask the Zaro team.</p>
+  </div>
+</section>
+
+<section id="tracks">
+  <div><div class="eyebrow">Beginner's guide</div><h2>The three tracks</h2><p class="lede">Open the one you want. We chose Fraud &amp; Security.</p></div>
+
+  <details>
+    <summary>Payments: where payments stall or fail</summary>
+    <div class="body">
+      <p class="an">A payment is a parcel handed between couriers: your bank → a network → their bank. Each handover can lose, delay or return it.</p>
+      <p><b>Day to day:</b> ops teams chase "where's my money?" tickets, investigate returned transfers and handle chargebacks. Finance teams reconcile (match incoming payments to invoices), often by hand in Excel.</p>
+      <ul>
+        <li>International transfers take 1–5 days and cost about 6% on average worldwide (World Bank).</li>
+        <li>Returned payments come back with cryptic codes (AC04, RR04) and no next step.</li>
+        <li>Small businesses wait 60–90 days on invoices.</li>
+        <li>"Who paid me £340 with reference J SMITH?"</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>Access to Finance: people and small businesses turned away</summary>
+    <div class="body">
+      <p class="an">A lender is a bouncer checking ID. Your ID is your credit file. No file, or a messy one, means no entry, even if you're trustworthy.</p>
+      <p><b>Day to day:</b> underwriters review statements and scores and price the loan to its risk. Credit agencies (Experian, Equifax, TransUnion) keep the files. Borrowers spend weeks gathering paperwork.</p>
+      <ul>
+        <li>Millions of UK adults have thin or no credit files: migrants, students, people who only use cash.</li>
+        <li>Rejections arrive without reasons, so applicants can't fix anything.</li>
+        <li>Checking a £10k loan costs nearly as much as a £1M one, so small loans get ignored.</li>
+        <li>What changed: Open Banking lets people share real bank data with consent, and AI can read messy statements.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details open>
+    <summary>Fraud &amp; Security: scams that look convincing (our track)</summary>
+    <div class="body">
+      <p class="an">Criminals no longer break into the vault. They talk the customer into opening it.</p>
+      <p><b>Day to day:</b> fraud analysts review flagged payments, call customers ("did you make this?") and handle victim claims. Identity teams run KYC ("know your customer") checks on new accounts.</p>
+      <ul>
+        <li><b>Authorised push payment (APP) fraud:</b> the victim is tricked into sending money themselves. Fake landlord, fake "bank security team", romance and crypto investment scams. UK losses run to hundreds of millions of pounds a year.</li>
+        <li><b>Since Oct 2024, UK banks must reimburse most APP victims (up to £85k),</b> so every scam they miss costs them directly. That makes banks the buyer.</li>
+        <li>AI makes scams better: cloned voices, deepfake calls, flawless phishing, fake screenshots in seconds.</li>
+        <li>The hard part: the victim <i>wants</i> to pay, so normal security checks all pass.</li>
+      </ul>
+    </div>
+  </details>
+
+  <div class="card">
+    <div class="label">Fintech hack vs AI hack</div>
+    <ul>
+      <li><b>Money moves can't be undone.</b> Show what happens when the AI is wrong. We advise and pause, never auto-block.</li>
+      <li><b>"The AI said no" isn't allowed.</b> Show why: highlight the evidence.</li>
+      <li><b>Data is sensitive.</b> Ask for consent, collect the minimum, never ask for bank logins.</li>
+      <li><b>Name the person and the pound amount.</b> "Margaret nearly lost £8,000" beats "users face friction".</li>
+      <li><b>Say who pays.</b> Bank, marketplace, accounting tool, university.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="ideas">
+  <div><div class="eyebrow">Fraud &amp; Security shortlist</div><h2>Seven ideas</h2>
+  <p class="lede"><b>Why now, for all of them:</b> AI makes scams cheap and convincing, and banks now pay for every scam they miss. <b>Trust, for all of them:</b> we never move or block money; we pause and explain, and every red flag points to where we found it.</p></div>
+
+  <div class="grid2">
+    <article class="card idea pick">
+      <div class="top"><h3>F1 · Pause</h3><span class="pill red">Recommended</span></div>
+      <p>A scam check before you pay.</p>
+      <dl>
+        <dt>Person</dt><dd>Margaret, 68. "Barclays fraud team" tells her to move £8,000 to a safe account.</dd>
+        <dt>Flow</dt><dd>Paste the message or answer 3 questions. Get a red, amber or green verdict, with the scam phrases highlighted in her own words and one safe next step: "Hang up, call the number on your card."</dd>
+        <dt>Who pays</dt><dd>Banks, built into the payment screen.</dd>
+        <dt>Build</dt><dd><span class="pill ok">Easy</span> one text box and a structured AI verdict.</dd>
+      </dl>
+    </article>
+
+    <article class="card idea">
+      <div class="top"><h3>F3 · Invoice Guard</h3><span class="pill warn">Most original · Zaro fit</span></div>
+      <p>Stops "we changed our bank details" invoice scams.</p>
+      <dl>
+        <dt>Person</dt><dd>Sam, runs a 10-person building firm. A "supplier" asks him to pay a £14k invoice to new bank details.</dd>
+        <dt>Flow</dt><dd>Upload the email or invoice. It's compared with the supplier's past invoices for changed bank details, lookalike domains and urgency, and gets a mocked bank name check. "Call the supplier on the number you already have."</dd>
+        <dt>Who pays</dt><dd>Xero or QuickBooks add-on, business banks.</dd>
+        <dt>Build</dt><dd><span class="pill warn">Medium</span> needs sample invoice history.</dd>
+      </dl>
+    </article>
+
+    <article class="card idea">
+      <div class="top"><h3>F2 · Rent Check</h3><span class="pill warn">Most relatable</span></div>
+      <p>Rental deposit scam checker.</p>
+      <dl>
+        <dt>Person</dt><dd>Wei, new international LSE student. An "overseas landlord" wants £2,000 before any viewing.</dd>
+        <dt>Flow</dt><dd>Paste the listing and messages. It checks price against the area, scam-script red flags and reused photos, plus a mocked Land Registry owner check. Get a verdict and questions to ask the landlord.</dd>
+        <dt>Who pays</dt><dd>Universities, SpareRoom or Rightmove, banks.</dd>
+        <dt>Build</dt><dd><span class="pill ok">Easy</span> same engine as Pause.</dd>
+      </dl>
+    </article>
+
+    <article class="card idea">
+      <div class="top"><h3>F4 · Paid?</h3><span class="pill warn">Fotor fit</span></div>
+      <p>Fake payment-screenshot checker.</p>
+      <dl>
+        <dt>Person</dt><dd>Priya sells on Vinted. A buyer sends a "transfer sent" screenshot; she ships and the money never arrives.</dd>
+        <dt>Flow</dt><dd>Upload the screenshot. AI reads the amount, reference and time, spots signs of editing and matches it against her real incoming payments: "Not in your account. Don't ship."</dd>
+        <dt>Who pays</dt><dd>Marketplaces, seller banks.</dd>
+        <dt>Build</dt><dd><span class="pill warn">Medium</span> needs vision AI and a fake test set (made with Fotor).</dd>
+      </dl>
+    </article>
+
+    <article class="card idea">
+      <div class="top"><h3>F5 · Mule Alert</h3></div>
+      <p>Spots job ads that recruit money mules.</p>
+      <dl>
+        <dt>Person</dt><dd>Jay, 19. Instagram ad: "Earn £500/week, just receive money into your account."</dd>
+        <dt>Flow</dt><dd>Paste or screenshot the ad. It flags the recruitment patterns and explains the cost: criminal record, account closed, a fraud marker on file.</dd>
+        <dt>Who pays</dt><dd>Banks, universities, social platforms.</dd>
+        <dt>Build</dt><dd><span class="pill ok">Easy</span></dd>
+      </dl>
+    </article>
+
+    <article class="card idea">
+      <div class="top"><h3>F6 · Is It Really Mum?</h3></div>
+      <p>Checks voice-clone "family emergency" calls.</p>
+      <dl>
+        <dt>Person</dt><dd>A dad gets a call in his daughter's cloned voice: "Lost my phone, need £600 now."</dd>
+        <dt>Flow</dt><dd>One tap sends a challenge to her real number or asks for the family safe word. The AI flags the script.</dd>
+        <dt>Build</dt><dd><span class="pill red">Hard to demo</span></dd>
+      </dl>
+    </article>
+
+    <article class="card idea">
+      <div class="top"><h3>F7 · Second Pair of Eyes</h3></div>
+      <p>A trusted contact confirms unusual payments.</p>
+      <dl>
+        <dt>Person</dt><dd>An older person sends an unusually large payment to a new payee late at night.</dd>
+        <dt>Flow</dt><dd>A chosen family member gets pinged to confirm, with the AI's summary of why it looks odd.</dd>
+        <dt>Build</dt><dd><span class="pill warn">Medium</span> needs mocked bank data.</dd>
+      </dl>
+    </article>
+  </div>
+
+  <details>
+    <summary>Ideas from the other tracks (parked)</summary>
+    <div class="body">
+      <p><b>Receipts</b> (Access to Finance): Tunde, a café owner refused a £15k loan, uploads bank statements and gets a pack ready for lenders. Every number links to the transactions behind it. Strong for DWS, Experian and Zaro.</p>
+      <p><b>Stuck-payment translator</b> (Payments): turns a returned-payment code into plain English, next steps and a message to the payer.</p>
+    </div>
+  </details>
+</section>
+
+<section id="next">
+  <div><div class="eyebrow">Decisions needed</div><h2>Before we build</h2></div>
+  <div class="grid2">
+    <div class="card"><h3>1. Pick the idea</h3><p class="small">Recommended: <b>Pause</b>, demoed on two scenarios (Margaret and Wei) to show it works on more than one scam. Alternative: <b>Invoice Guard</b> for originality and the Zaro prize.</p></div>
+    <div class="card"><h3>2. API key?</h3><p class="small">With an Anthropic or OpenAI key, the AI runs live. Without one, we use prepared demo answers and say "Mocked: the AI call" in the video.</p></div>
+    <div class="card"><h3>3. Ask at the event</h3><ul class="small"><li>Zaro: what do the tokens unlock? Any API access?</li><li>Foldo: what is it and how do builders use it?</li><li>Confirm the deadline: 20:10 or 20:30?</li></ul></div>
+  </div>
+</section>
+</div>
