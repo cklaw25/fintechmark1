@@ -182,6 +182,10 @@ button{font:inherit;cursor:pointer}
 .mini li.fail .ic{background:var(--bad-soft);color:var(--bad)}
 .mini small{display:block;color:var(--muted);font-size:12.5px}
 .linkbtn{background:none;border:0;color:var(--accent);padding:0;font-weight:600;text-align:left}
+.dbt{width:100%;border-collapse:collapse;font-size:14px}
+.dbt th,.dbt td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.dbt th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.dbt tr:last-child td{border-bottom:0}
 h2{font-size:20px;margin:0}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.spin{animation:none}.ev{transition:none}}
@@ -194,6 +198,7 @@ h2{font-size:20px;margin:0}
     <button class="tab" role="tab" id="tab-story" aria-selected="true">End-to-end</button>
     <button class="tab" role="tab" id="tab-pay" aria-selected="false">Bank: payment checks</button>
     <button class="tab" role="tab" id="tab-an" aria-selected="false">Analyst queue<span class="n" id="heldN">1</span></button>
+    <button class="tab" role="tab" id="tab-db" aria-selected="false">Flagged database<span class="n" id="dbN" hidden>0</span></button>
   </div>
 </div></div>
 
@@ -204,13 +209,14 @@ h2{font-size:20px;margin:0}
       <div class="seg" role="group" aria-label="Demo case">
         <button data-case="CL-2041" aria-pressed="true">Case 1 · Real invoice</button>
         <button data-case="CL-2042" aria-pressed="false">Case 2 · Fake invoice (scam)</button>
+        <button data-case="CL-2043" aria-pressed="false">Case 3 · Same scammer returns</button>
         <button id="reset">Reset</button>
       </div>
     </div>
     <div class="e2e">
       <div class="col"><span class="label">1 · Sender · London business</span><div class="phone" id="phS"></div></div>
       <div class="col"><span class="label">2 · Inside the bank · ClearLane</span><div class="panel midp" id="mid"></div></div>
-      <div class="col"><span class="label">3 · Receiver · Chidi in Lagos</span><div class="phone" id="phR"></div></div>
+      <div class="col"><span class="label">3 · Receiver · Lagos</span><div class="phone" id="phR"></div></div>
     </div>
   </div>
 
@@ -237,6 +243,25 @@ h2{font-size:20px;margin:0}
       <div class="panel log" id="log"></div>
     </div>
   </div>
+
+  <div id="view-db" hidden>
+    <div class="work">
+      <div style="display:grid;gap:4px"><h2>Flagged database</h2><p class="vs">When a payment is held, ClearLane records the details behind it. Every new payment is checked against this list in milliseconds, so a scammer who returns with a new name or a new victim is caught on the first check.</p></div>
+      <div class="stats">
+        <div class="panel stat"><span class="label">Suspect records</span><span class="n bad" id="dbS">0</span></div>
+        <div class="panel stat"><span class="label">Protected (victims)</span><span class="n ok" id="dbP">0</span></div>
+        <div class="panel stat"><span class="label">Repeat hits caught</span><span class="n" id="dbR">0</span></div>
+      </div>
+      <div class="panel tablewrap"><table class="dbt" id="dbt"></table></div>
+      <div class="panel" style="padding:14px 16px;display:grid;gap:6px"><span class="label">How we keep this fair</span>
+        <ul style="margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px">
+          <li><b>Victims are never recorded as suspects.</b> The impersonated supplier and the targeted customer are stored as <i>protected</i>, which only adds extra warnings for them.</li>
+          <li><b>Records start as "Under review".</b> They become "Confirmed fraud" only when a human analyst rejects the payment; an approval clears them.</li>
+          <li><b>Minimum data:</b> account, name used, email domain, linked payments. No ID documents stored. Unconfirmed records expire after 12 months.</li>
+          <li><b>Next step:</b> share confirmed records across every bank using ClearLane, so one bank's catch protects all of them.</li>
+        </ul></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -245,7 +270,7 @@ const CASES = [
   {
     id:'CL-2041', time:'14:02', payer:'Hartwell Studio Ltd', payerLoc:'London, UK · Northgate business account ****2210',
     payee:'Adeyemi Prints Ltd', payeeLoc:'Lagos, Nigeria', bank:'GTBank', acct:'0123456789', amount:1200,
-    ref:'Design services · INV-0457', status:'new',
+    ref:'Design services · INV-0457', status:'new', lastTime:'9 days',
     invoice:{no:'INV-0457', date:'08 Oct 2026', from:'Adeyemi Prints Ltd', addr:'14 Adeola Odeku St, Victoria Island, Lagos', rc:'RC 1543210',
       lines:[['Brand identity print run (500 units)',800],['Packaging design revisions',400]], bankName:'Adeyemi Prints Ltd', bankBank:'GTBank', bankAcct:'0123456789', tampered:false},
     email:null,
@@ -262,7 +287,16 @@ const CASES = [
   {
     id:'CL-2042', time:'14:09', payer:'Hartwell Studio Ltd', payerLoc:'London, UK · Northgate business account ****2210',
     payee:'Adeyemi Prints Ltd', payeeLoc:'Lagos, Nigeria', bank:'Zenith Bank', acct:'2087754310', amount:4800,
-    ref:'Urgent settlement · INV-0461', status:'new',
+    ref:'Urgent settlement · INV-0461', status:'new', lastTime:'9 days',
+    flags:[
+      {key:'acct:2087754310',type:'Bank account',value:'Zenith Bank 2087754310 · holder ADEBAYO OKON',role:'suspect'},
+      {key:'dom:adeyemi-prlnts.com',type:'Email domain',value:'adeyemi-prlnts.com (lookalike of the real supplier)',role:'suspect'},
+      {key:'biz:adeyemi',type:'Business',value:'Adeyemi Prints Ltd · impersonated. Real account GTBank ****6789 stays trusted',role:'impersonated'},
+      {key:'cust:hartwell',type:'Customer',value:'Hartwell Studio Ltd (Northgate ****2210) · targeted, add extra warnings',role:'targeted'}],
+    heldSummary:'Bank details changed to a never-used personal account (ADEBAYO OKON) that doesn’t match the payee. Invoice bank block appears edited; email came from lookalike domain adeyemi-prlnts.com at 23:48 asking the client not to call. Amount 3.5× usual. Recommend: reject unless supplier confirms by phone on file number +234 803 555 0142.',
+    story:{warn:['Bank details changed from the account you always pay','That account belongs to someone else (ADEBAYO OKON)','The email came from a fake address: adeyemi-pr<b>l</b>nts.com'],
+      call:'Call Adeyemi Prints on the number you already have: +234 803 555 0142',
+      phone:'Chidi’s phone', recv:'<div class="big ok">✓</div><h3>Nothing lost</h3><p>The scammer got nothing. £4,800 stays with Hartwell Studio.</p><p>Chidi’s real account is untouched. His client calls him to check, then pays the right account.</p><p><b>The scammer’s account and fake email domain are now on the flagged list.</b></p>'},
     invoice:{no:'INV-0461', date:'11 Oct 2026', from:'Adeyemi Prints Ltd', addr:'14 Adeola Odeku St, Victoria Island, Lagos', rc:'RC 1543210',
       lines:[['Seasonal catalogue print run (2,000 units)',3600],['Rush delivery',1200]], bankName:'Adeyemi Prints Ltd', bankBank:'Zenith Bank', bankAcct:'2087754310', tampered:true},
     email:{from:'accounts@adeyemi-prlnts.com', to:'finance@hartwellstudio.co.uk', date:'11 Oct 2026, 23:48', subj:'RE: INV-0461 urgent',
@@ -275,9 +309,48 @@ const CASES = [
       {s:'fail',t:'Pressure and "don’t call" language',d:'Sent 23:48 from adeyemi-prlnts.com ("l" swapped for "i" lookalike). Says urgent, account "under audit", and asks the client not to call. Classic invoice-redirection script.',src:'Client’s email, lines 2–3',ev:'e2,e3'},
       {s:'warn',t:'Amount unusual',d:'£4,800 is 3.5× the largest previous payment (£1,350) to this payee.',src:'Payment history',ev:'inv-total'}
     ],
-    verdict:{k:'hold',title:'HOLD: likely invoice redirection fraud',text:'Money not sent. Next step: call Adeyemi Prints on the number already on file (+234 803 555 0142), not one from the email. Sent to the analyst queue with this summary.'}
+    verdict:{k:'hold',title:'HOLD: likely invoice redirection fraud',text:'Money not sent. Next step: call Adeyemi Prints on the number already on file (+234 803 555 0142), not one from the email. Sent to the analyst queue. Scammer details recorded in the flagged database.'}
+  },
+  {
+    id:'CL-2043', time:'14:20', payer:'Moss & Reed LLP', payerLoc:'Manchester, UK · Northgate business account ****7731',
+    payee:'Lagos Textile Co', payeeLoc:'Lagos, Nigeria', bank:'Zenith Bank', acct:'2087754310', amount:2300,
+    ref:'Fabric order · LTC-118', status:'new', lastTime:'',
+    invoice:{no:'LTC-118', date:'12 Oct 2026', from:'Lagos Textile Co', addr:'22 Balogun Market Rd, Lagos Island', rc:'RC 2290417',
+      lines:[['Ankara fabric (300 yards)',1700],['Shipping to Manchester',600]], bankName:'Lagos Textile Co', bankBank:'Zenith Bank', bankAcct:'2087754310', tampered:false},
+    email:null, history:[],
+    flags:[
+      {key:'acct:2087754310',type:'Bank account',value:'Zenith Bank 2087754310 · holder ADEBAYO OKON',role:'suspect'},
+      {key:'biz:ltc',type:'Business name',value:'"Lagos Textile Co" · name used with the flagged account',role:'suspect'},
+      {key:'cust:moss',type:'Customer',value:'Moss & Reed LLP (Northgate ****7731) · targeted, add extra warnings',role:'targeted'}],
+    get hit(){return dbHas('acct:2087754310','CL-2043')},
+    get checks(){const h=this.hit; return [
+      h?{s:'fail',t:'Account is on the flagged list',d:`Zenith 2087754310 was flagged at ${h.time} in ${h.cases[0]}, a scam attempt on a different customer. Now it is using a different business name.`,src:'ClearLane flagged database · '+h.cases[0],ev:'inv-bank'}
+       :{s:'warn',t:'Not on the flagged list',d:'No earlier record of this account. (Run Case 2 first to see the database catch it.)',src:'ClearLane flagged database',ev:'inv-bank'},
+      {s:'fail',t:'Payee name does NOT match the account',d:'Zenith account 2087754310 is registered to ADEBAYO OKON, not Lagos Textile Co.',src:'Nigerian bank name lookup (mocked)',ev:'inv-bank'},
+      {s:'warn',t:'First payment to a new supplier',d:'Moss & Reed has never paid this payee before.',src:'Payment history (none)',ev:'hist'},
+      {s:'pass',t:'Sanctions check',d:'No matches on the sanctions list sample.',src:'Sanctions list sample (mocked)',ev:'inv-from'},
+      {s:'pass',t:'Invoice matches the payment',d:'Amount £2,300.00 and invoice LTC-118 agree with the payment instruction.',src:'Invoice LTC-118',ev:'inv-total'}]},
+    get verdict(){const h=this.hit; return h
+      ?{k:'hold',title:'HOLD: account already flagged',text:`This account tried to take £4,800 from another Northgate customer at ${h.time} (${h.cases[0]}). Money not sent. Linked to the earlier case and sent to the analyst queue.`}
+      :{k:'hold',title:'HOLD: payee name mismatch',text:'The account doesn’t belong to the business on the invoice. Money not sent. Sent to the analyst queue.'}},
+    get heldSummary(){const h=this.hit; return (h?`Same Zenith account (ADEBAYO OKON) as ${h.cases[0]} at ${h.time}, now posing as "Lagos Textile Co". `:'')+'Account holder doesn’t match the payee; first payment to this supplier. Recommend: reject and alert Moss & Reed.'},
+    get story(){const h=this.hit; return {
+      warn:[...(h?[`This account was used in a scam on another customer at ${h.time}`]:[]),'The account belongs to ADEBAYO OKON, not Lagos Textile Co','You have never paid this supplier before'],
+      call:'Confirm the supplier through a contact you already trust before paying.',
+      phone:'Receiving account', recv:`<div class="big ok">✓</div><h3>Scam blocked twice</h3><p>The same scammer tried a second business with a new name. ${h?'The flagged database caught the account instantly.':'The name check caught it.'}</p><p>£2,300 stays with Moss &amp; Reed.</p>`}}
   }
 ];
+const DB = [];
+function dbHas(key, exclude){const e=DB.find(x=>x.key===key); return e && e.cases.some(id=>id!==exclude) ? e : null}
+function addToDb(c){
+  let added=0;
+  (c.flags||[]).forEach(f=>{
+    const e=DB.find(x=>x.key===f.key);
+    if(e){ if(!e.cases.includes(c.id)) e.cases.push(c.id); e.last=c.time; }
+    else { DB.unshift({...f,cases:[c.id],time:c.time,last:c.time,status:f.role==='suspect'?'Under review':'Protected'}); added++; }
+  });
+  return added;
+}
 const PRESET_HELD = {id:'CL-2036', time:'13:41', payer:'Okoro Foods UK Ltd', payee:'Eze & Sons Trading', amount:9800, status:'hold',
   summary:'Name matches and invoice agrees, but this is the first payment to this payee and £9,800 is above the customer’s usual £2–4k. No fraud signals in documents. Suggest: confirm the new supplier relationship with the customer, then approve.'};
 const BG = [
@@ -323,7 +396,7 @@ function emailHTML(c){
 function histHTML(c){
   return `<div class="panel hist"><div class="label">Previous payments to this payee</div><div class="tablewrap"><table>
     <tr><th>Date</th><th>Amount</th><th>Paid to</th></tr>
-    ${c.history.map(h=>`<tr class="ev" data-ev="hist"><td>${h[0]}</td><td>${fmt(h[1])}</td><td>${h[2]}</td></tr>`).join('')}
+    ${c.history.length?c.history.map(h=>`<tr class="ev" data-ev="hist"><td>${h[0]}</td><td>${fmt(h[1])}</td><td>${h[2]}</td></tr>`).join(''):`<tr class="ev" data-ev="hist"><td colspan="3">No previous payments to this payee</td></tr>`}
   </table></div></div>`;
 }
 
@@ -381,10 +454,9 @@ decision: AUTO-CLEAR · model + rules v0.3
 signed: Northgate Bank · ${c.time}:08`
 : `ClearLane case summary · ${c.id}
 decision: HOLD → analyst queue
-signals: account changed, name mismatch,
-  invoice edited, lookalike sender domain,
-  "do not call" pressure, amount 3.5× usual
-recommended: call supplier on file number`;
+signals:
+${c.checks.filter(k=>k.s!=='pass').map(k=>'  - '+k.t).join('\n')}
+recorded: flagged database (${(c.flags||[]).length} records)`;
   return `<div class="verdict ${v.k}"><h3>${v.k==='clear'?'✓ ':'✕ '}${v.title}</h3><p>${v.text}</p></div>
     <div style="display:grid;gap:6px;margin-top:12px"><span class="label">${v.k==='clear'?'Evidence pack sent with the payment':'Summary sent to analyst'}</span><pre class="pack">${pack}</pre></div>`;
 }
@@ -423,9 +495,10 @@ function finalize(c){
       const total = c.verdict.k==='clear'?8.2:6.7;
       st.shown=c.checks.length; st.status=c.verdict.k;
       if(c.verdict.k==='clear'){stats.clear++; logRows.unshift([c.time,`${c.id} auto-cleared in ${total}s (5/5 checks) · evidence pack attached`]);}
-      else{stats.held++; held.unshift({id:c.id,time:c.time,payer:c.payer,payee:c.payee,amount:c.amount,status:'hold',
-        summary:'Bank details changed to a never-used personal account (ADEBAYO OKON) that doesn’t match the payee. Invoice bank block appears edited; email came from lookalike domain adeyemi-prlnts.com at 23:48 asking the client not to call. Amount 3.5× usual. Recommend: reject unless supplier confirms by phone on file number +234 803 555 0142.'});
-        logRows.unshift([c.time,`${c.id} HELD for analyst: likely invoice redirection fraud (3 fails, 2 warnings)`]);}
+      else{stats.held++; held.unshift({id:c.id,time:c.time,payer:c.payer,payee:c.payee,amount:c.amount,status:'hold',summary:c.heldSummary});
+        logRows.unshift([c.time,`${c.id} HELD for analyst: ${c.verdict.title.replace('HOLD: ','')}`]);
+        const n=addToDb(c); logRows.unshift([c.time,`${c.id} recorded in flagged database (${n} new, ${(c.flags||[]).length-n} linked to earlier records)`]);
+        renderDb();}
       stats.total++; renderQueue(); renderWork(); renderAnalyst();
 }
 
@@ -452,8 +525,8 @@ function renderStory(){
     s+=`<div class="state"><div class="big ok">✓</div><h3>Sent</h3><p>Checked and cleared in ${secs}s.<br>${c.payee} receives ${ngn} now.</p></div>`;
   } else {
     s+=`<div class="state"><div class="big bad">!</div><h3>Payment paused</h3><p>This looks like a scam. Your money has not left your account.</p></div>
-      <div class="warnbox"><b>Why we paused it</b><ul><li>Bank details changed from the account you always pay</li><li>That account belongs to someone else (ADEBAYO OKON)</li><li>The email came from a fake address: adeyemi-pr<b>l</b>nts.com</li></ul>
-      <b>Call Adeyemi Prints on the number you already have: +234 803 555 0142</b></div>`;
+      <div class="warnbox"><b>Why we paused it</b><ul>${c.story.warn.map(w=>`<li>${w}</li>`).join('')}</ul>
+      <b>${c.story.call}</b></div>`;
   }
   $('#phS').innerHTML=s;
   const sb=$('#send'); if(sb) sb.onclick=storyRun;
@@ -465,15 +538,15 @@ function renderStory(){
     <button class="linkbtn" id="toBank">Open the full bank view →</button>`;
   $('#toBank').onclick=()=>{if(running)return;current=sc;renderQueue();renderWork();show('pay')};
   // receiver phone
-  let r=`<div class="bar"><span>${c.time}</span><span>MTN ▮▮▮</span></div><div class="app"><i class="ng"></i>Chidi's phone</div>`;
+  let r=`<div class="bar"><span>${c.time}</span><span>MTN ▮▮▮</span></div><div class="app"><i class="ng"></i>${fraud?c.story.phone:'Chidi’s phone'}</div>`;
   if(sStage!=='done'){
-    r+=`<div class="state"><p>Waiting for ${fmt(c.amount)} from Hartwell Studio…</p><p>Last time: 9 days.</p></div>`;
+    r+=`<div class="state"><p>Waiting for ${fmt(c.amount)} from ${c.payer}…</p>${c.lastTime?`<p>Last time: ${c.lastTime}.</p>`:''}</div>`;
   } else if(!fraud){
-    r+=`<div class="notif"><span class="label">${c.bank} · Credit alert</span><b>+${ngn}</b><span class="vs">From HARTWELL STUDIO LTD · ${c.invoice.no}</span></div>
+    r+=`<div class="notif"><span class="label">${c.bank} · Credit alert</span><b>+${ngn}</b><span class="vs">From ${c.payer.toUpperCase()} · ${c.invoice.no}</span></div>
       <div class="state" style="padding-top:12px"><h3>Paid. Staff paid on time.</h3>
-      <div class="cmp"><div class="now"><span class="label">With ClearLane</span><b>${secs} sec</b></div><div class="old"><span class="label">Last time</span><b>9 days</b></div></div></div>`;
+      <div class="cmp"><div class="now"><span class="label">With ClearLane</span><b>${secs} sec</b></div><div class="old"><span class="label">Last time</span><b>${c.lastTime}</b></div></div></div>`;
   } else {
-    r+=`<div class="state"><div class="big ok">✓</div><h3>Nothing lost</h3><p>The scammer got nothing. ${fmt(c.amount)} stays with Hartwell Studio.</p><p>Chidi's real account is untouched. His client calls him to check, and then pays the right account.</p></div>`;
+    r+=`<div class="state">${c.story.recv}</div>`;
   }
   $('#phR').innerHTML=r;
 }
@@ -505,16 +578,29 @@ function renderAnalyst(){
     if(b.dataset.act==='call'){logRows.unshift([now,`${h.id} analyst logged call to supplier on file number`]); renderAnalyst(); return;}
     h.status='done'; h.decision=b.dataset.act==='reject'?'Rejected, customer alerted':'Approved and released';
     if(state[h.id]) state[h.id].status='done';
+    DB.forEach(e=>{ if(e.role==='suspect' && e.cases.includes(h.id)) e.status = b.dataset.act==='reject'?'Confirmed fraud':(e.cases.length>1?e.status:'Cleared'); });
+    renderDb();
     logRows.unshift([now,`${h.id} ${h.decision.toLowerCase()} by analyst J. Mensah`]);
     renderAnalyst(); renderQueue();
   });
   $('#log').innerHTML = logRows.map(r=>`<div><span>${r[0]}</span>${r[1]}</div>`).join('');
 }
 
+function renderDb(){
+  const sus=DB.filter(e=>e.role==='suspect'), pro=DB.filter(e=>e.role!=='suspect');
+  $('#dbS').textContent=sus.length; $('#dbP').textContent=pro.length;
+  $('#dbR').textContent=DB.reduce((a,e)=>a+Math.max(0,e.cases.length-1),0);
+  $('#dbN').textContent=sus.length; $('#dbN').hidden=!sus.length;
+  if(!DB.length){ $('#dbt').innerHTML=`<tr><td class="empty">No flagged records yet. Run <b>Case 2 · Fake invoice</b> and the scammer's account, fake email domain and the people they targeted get recorded here.</td></tr>`; return; }
+  const st={ 'Under review':'new','Confirmed fraud':'hold','Cleared':'done','Protected':'clear' };
+  $('#dbt').innerHTML=`<tr><th>Type</th><th>Record</th><th>Role</th><th>First seen</th><th>Linked payments</th><th>Status</th></tr>`+
+    DB.map(e=>`<tr><td>${e.type}</td><td>${e.value}</td><td>${e.role==='suspect'?'<span class="pill hold">Suspect</span>':`<span class="pill clear">${e.role==='impersonated'?'Impersonated':'Targeted'}</span>`}</td>
+      <td class="mono">${e.time}</td><td class="mono">${e.cases.join(', ')}${e.cases.length>1?' <span class="pill hold">repeat</span>':''}</td><td><span class="pill ${st[e.status]}">${e.status}</span></td></tr>`).join('');
+}
 function show(tab){
-  ['story','pay','an'].forEach(t=>{$('#view-'+t).hidden=t!==tab; $('#tab-'+t).setAttribute('aria-selected',t===tab)});
+  ['story','pay','an','db'].forEach(t=>{$('#view-'+t).hidden=t!==tab; $('#tab-'+t).setAttribute('aria-selected',t===tab)});
   window.scrollTo(0,0);
 }
-$('#tab-story').onclick=()=>show('story'); $('#tab-pay').onclick=()=>show('pay'); $('#tab-an').onclick=()=>show('an');
-renderQueue(); renderWork(); renderAnalyst(); renderStory();
+$('#tab-story').onclick=()=>show('story'); $('#tab-pay').onclick=()=>show('pay'); $('#tab-an').onclick=()=>show('an'); $('#tab-db').onclick=()=>show('db');
+renderQueue(); renderWork(); renderAnalyst(); renderStory(); renderDb();
 </script>
