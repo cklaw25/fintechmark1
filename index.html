@@ -1,0 +1,392 @@
+<title>ClearLane</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@500&display=swap">
+<style>
+/* Layout: bank ops console. Top bar with tabs; payments view = queue rail (left) + case workspace (right: payment, invoice, live checks, verdict) */
+:root{
+  --bg:#f3f5f4; --panel:#ffffff; --fg:#14201d; --muted:#5d6b67; --line:#d9e0dd;
+  --accent:#0b6e61; --accent-soft:#e1f1ed;
+  --ok:#14804a; --ok-soft:#e2f4ea; --warn:#9a6400; --warn-soft:#fbf0d9; --bad:#c2352b; --bad-soft:#fbe6e3;
+  --paper:#fffefb; --paper-ink:#1c1c1c; --paper-line:#e6e2d8; --hl:#ffe58a;
+  --sans:"IBM Plex Sans","Segoe UI",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace; --serif:"IBM Plex Serif",Georgia,serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1513; --panel:#14201d; --fg:#e4ecea; --muted:#93a39f; --line:#26332f;
+  --accent:#3fc1ab; --accent-soft:#163a33; --ok:#4fd08a; --ok-soft:#143323; --warn:#f0b443; --warn-soft:#3a2d12; --bad:#ff7b6f; --bad-soft:#3d1c19; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1513; --panel:#14201d; --fg:#e4ecea; --muted:#93a39f; --line:#26332f;
+  --accent:#3fc1ab; --accent-soft:#163a33; --ok:#4fd08a; --ok-soft:#143323; --warn:#f0b443; --warn-soft:#3a2d12; --bad:#ff7b6f; --bad-soft:#3d1c19; color-scheme:dark}
+
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.45}
+button{font:inherit;cursor:pointer}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--panel);border-bottom:1px solid var(--line)}
+.top .in{max-width:1280px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px 20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:28px;height:28px;border-radius:7px;background:var(--accent);position:relative;flex:none}
+.mark::before,.mark::after{content:"";position:absolute;left:6px;right:6px;height:3px;border-radius:2px;background:var(--panel)}
+.mark::before{top:9px}.mark::after{bottom:9px}
+.brand b{font-size:18px;letter-spacing:-.01em}
+.brand span{font-size:12.5px;color:var(--muted)}
+.tabs{display:flex;gap:4px;margin-left:auto}
+.tab{border:1px solid transparent;background:none;color:var(--muted);padding:6px 12px;border-radius:7px;font-weight:500}
+.tab[aria-selected="true"]{background:var(--accent-soft);color:var(--accent)}
+.tab .n{font-family:var(--mono);font-size:11.5px;background:var(--bad);color:var(--panel);border-radius:999px;padding:1px 6px;margin-left:6px}
+.demo{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);padding:3px 8px;border-radius:5px}
+
+.wrap{max-width:1280px;margin:0 auto;padding-inline:16px;padding-block:16px 48px}
+.layout{display:grid;grid-template-columns:290px minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
+.label{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+
+.queue{padding:12px;display:grid;gap:8px}
+.queue ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.qi{width:100%;text-align:left;background:none;border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;gap:3px;color:var(--fg)}
+.qi:hover{border-color:var(--accent)}
+.qi[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.qi .r1{display:flex;justify-content:space-between;gap:8px;font-weight:600}
+.qi .r2{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted)}
+.amt{font-variant-numeric:tabular-nums}
+.pill{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.pill.new{background:var(--accent-soft);color:var(--accent)}
+.pill.clear{background:var(--ok-soft);color:var(--ok)}
+.pill.hold{background:var(--bad-soft);color:var(--bad)}
+.pill.done{background:var(--line);color:var(--muted)}
+
+.work{display:grid;gap:16px;min-width:0}
+.payhead{padding:16px;display:grid;gap:14px}
+.route{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center}
+@media (max-width:560px){.route{grid-template-columns:minmax(0,1fr)}.route .arrow{transform:rotate(90deg);justify-self:start}}
+.party{display:grid;gap:2px;min-width:0}
+.party b{font-size:16px}
+.party .small{font-size:13px;color:var(--muted)}
+.arrow{font-family:var(--mono);color:var(--muted);text-align:center;font-size:13px}
+.arrow .big{display:block;font-size:22px;font-weight:600;color:var(--fg);font-family:var(--sans);font-variant-numeric:tabular-nums}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.facts div{display:grid;gap:2px;min-width:0}
+.facts .v{font-family:var(--mono);font-size:13px;overflow-wrap:anywhere}
+.runbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn{background:var(--accent);color:var(--panel);border:0;border-radius:8px;padding:10px 16px;font-weight:600}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.ghost{background:none;color:var(--accent);border:1px solid var(--accent)}
+.btn.bad{background:var(--bad)}
+.vs{font-size:13px;color:var(--muted)}
+.vs b{font-family:var(--mono);color:var(--fg);font-variant-numeric:tabular-nums}
+
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;align-items:start}
+@media (max-width:1100px){.cols{grid-template-columns:minmax(0,1fr)}}
+
+/* evidence: invoice paper keeps paper colours in both themes */
+.docs{display:grid;gap:12px;min-width:0}
+.paper{background:var(--paper);color:var(--paper-ink);border:1px solid var(--paper-line);border-radius:6px;padding:20px;display:grid;gap:12px;font-size:13px;box-shadow:0 1px 0 var(--paper-line)}
+.paper h4{font-family:var(--serif);font-size:20px;margin:0;font-weight:500}
+.paper .row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.paper table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.paper td{padding:5px 0;border-bottom:1px solid var(--paper-line)}
+.paper td:last-child{text-align:right}
+.paper .tot td{font-weight:700;border-bottom:0}
+.ev{border-radius:4px;transition:background-color .2s, box-shadow .2s;padding:2px 4px;margin:-2px -4px}
+.ev.hl{background:var(--hl);box-shadow:0 0 0 2px var(--hl)}
+.tamper{font-family:"Arial Narrow",Arial,sans-serif;letter-spacing:.02em;font-size:13.4px}
+.email{padding:14px;display:grid;gap:8px;font-size:13.5px}
+.email .meta{font-family:var(--mono);font-size:12px;color:var(--muted);display:grid;gap:2px}
+.email p{margin:0}
+.email .ev.hl{color:var(--paper-ink)}
+.hist{padding:12px 14px;display:grid;gap:8px}
+.hist table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.hist td,.hist th{text-align:left;padding:5px 6px;border-bottom:1px solid var(--line)}
+.hist th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.hist tr.ev{display:table-row;margin:0;padding:0}
+.hist tr.ev.hl td{background:var(--hl);color:var(--paper-ink)}
+.tablewrap{overflow-x:auto}
+
+.checks{padding:16px;display:grid;gap:12px;min-width:0}
+.checks ol{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ck{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:26px minmax(0,1fr);gap:4px 10px;cursor:pointer;background:var(--panel);color:var(--fg);text-align:left;width:100%}
+.ck:hover,.ck:focus-visible{border-color:var(--accent)}
+.ck .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;grid-row:span 2}
+.ck.pass .ic{background:var(--ok-soft);color:var(--ok)}
+.ck.warn .ic{background:var(--warn-soft);color:var(--warn)}
+.ck.fail .ic{background:var(--bad-soft);color:var(--bad)}
+.ck.pending .ic{background:var(--line);color:var(--muted)}
+.ck.pending{opacity:.55}
+.ck .t{font-weight:600}
+.ck .d{font-size:13.5px;color:var(--muted)}
+.ck .src{grid-column:2;font-family:var(--mono);font-size:11px;color:var(--accent)}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.verdict{border-radius:10px;padding:14px 16px;display:grid;gap:6px}
+.verdict.clear{background:var(--ok-soft);border:1px solid var(--ok)}
+.verdict.hold{background:var(--bad-soft);border:1px solid var(--bad)}
+.verdict h3{margin:0;font-size:19px}
+.verdict.clear h3{color:var(--ok)} .verdict.hold h3{color:var(--bad)}
+.verdict p{margin:0;font-size:14px}
+.pack{font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;white-space:pre-wrap;overflow-x:auto;margin:0}
+.empty{padding:28px;text-align:center;color:var(--muted);display:grid;gap:6px}
+
+/* analyst view */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:12px}
+.stat{padding:14px;display:grid;gap:4px}
+.stat .n{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}
+.stat .n.ok{color:var(--ok)} .stat .n.bad{color:var(--bad)}
+.aq{display:grid;gap:12px}
+.acase{padding:16px;display:grid;gap:10px}
+.acase .r1{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.acase .sum{font-size:14px;background:var(--bg);border-radius:8px;padding:10px 12px;display:grid;gap:4px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.log{padding:14px;display:grid;gap:6px;font-family:var(--mono);font-size:12px}
+.log div{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px}
+.log span{color:var(--muted)}
+h2{font-size:20px;margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.spin{animation:none}.ev{transition:none}}
+</style>
+
+<div class="top"><div class="in">
+  <div class="brand"><div class="mark" aria-hidden="true"></div><div><b>ClearLane</b><br><span>Northgate Bank · Cross-border payments desk · GBP → NGN</span></div></div>
+  <span class="demo">Demo · fictional bank &amp; data</span>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-pay" aria-selected="true">Payment checks</button>
+    <button class="tab" role="tab" id="tab-an" aria-selected="false">Analyst queue<span class="n" id="heldN">1</span></button>
+  </div>
+</div></div>
+
+<div class="wrap">
+  <div id="view-pay" class="layout">
+    <aside class="panel queue">
+      <div class="label">Incoming · today</div>
+      <ul id="queue"></ul>
+      <p class="vs">Click a payment, then run the ClearLane check.</p>
+    </aside>
+    <div class="work" id="work"></div>
+  </div>
+
+  <div id="view-an" hidden>
+    <div class="work">
+      <div class="stats">
+        <div class="panel stat"><span class="label">Payments today</span><span class="n" id="sTotal">214</span></div>
+        <div class="panel stat"><span class="label">Auto-cleared</span><span class="n ok" id="sClear">196</span></div>
+        <div class="panel stat"><span class="label">Sent to analysts</span><span class="n bad" id="sHeld">18</span></div>
+        <div class="panel stat"><span class="label">Median time to clear</span><span class="n">7.9s</span></div>
+      </div>
+      <div style="display:grid;gap:4px"><h2>Needs a human decision</h2><p class="vs">ClearLane never releases a flagged payment by itself. It writes the summary; an analyst decides.</p></div>
+      <div class="aq" id="aq"></div>
+      <div style="display:grid;gap:4px"><h2>Audit log</h2></div>
+      <div class="panel log" id="log"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const GBPNGN = 2040; // indicative demo rate
+const CASES = [
+  {
+    id:'CL-2041', time:'14:02', payer:'Hartwell Studio Ltd', payerLoc:'London, UK · Northgate business account ****2210',
+    payee:'Adeyemi Prints Ltd', payeeLoc:'Lagos, Nigeria', bank:'GTBank', acct:'0123456789', amount:1200,
+    ref:'Design services · INV-0457', status:'new',
+    invoice:{no:'INV-0457', date:'08 Oct 2026', from:'Adeyemi Prints Ltd', addr:'14 Adeola Odeku St, Victoria Island, Lagos', rc:'RC 1543210',
+      lines:[['Brand identity print run (500 units)',800],['Packaging design revisions',400]], bankName:'Adeyemi Prints Ltd', bankBank:'GTBank', bankAcct:'0123456789', tampered:false},
+    email:null,
+    history:[['12 Mar 2026',950,'GTBank ****6789'],['09 Apr 2026',1100,'GTBank ****6789'],['14 May 2026',800,'GTBank ****6789'],['11 Jun 2026',1350,'GTBank ****6789'],['16 Jul 2026',1200,'GTBank ****6789'],['10 Sep 2026',1050,'GTBank ****6789']],
+    checks:[
+      {s:'pass',t:'Payee name matches the Nigerian account',d:'GTBank account 0123456789 is registered to ADEYEMI PRINTS LTD. Same as the payee name on the payment.',src:'Nigerian bank name lookup (mocked)',ev:'inv-bank'},
+      {s:'pass',t:'Invoice matches the payment',d:'Amount £1,200.00, invoice INV-0457, payee name and bank details all agree with the payment instruction.',src:'Invoice INV-0457 · total + bank details',ev:'inv-total'},
+      {s:'pass',t:'Sanctions near-match cleared',d:'List entry "ADEYEMI, P." is an individual born 1961, nationality not Nigerian. Payee is a Lagos company registered 2019 (RC 1543210). Different entity, so this is a false alarm.',src:'Sanctions list sample (mocked) · invoice header',ev:'inv-from'},
+      {s:'pass',t:'Normal for this customer',d:'7th payment to this payee, same account every time since Mar 2026. Amount is inside the usual £800–£1,350 range.',src:'Payment history · 6 previous payments',ev:'hist'},
+      {s:'pass',t:'Purpose fits the business',d:'"Design services" matches the invoice items (printing and packaging design) and the payee’s registered activity.',src:'Invoice line items',ev:'inv-lines'}
+    ],
+    verdict:{k:'clear',title:'Auto-cleared in 8.2 seconds',text:'All 5 checks passed. Evidence pack attached so the middle bank and GTBank don’t need to ask for documents again.'}
+  },
+  {
+    id:'CL-2042', time:'14:09', payer:'Hartwell Studio Ltd', payerLoc:'London, UK · Northgate business account ****2210',
+    payee:'Adeyemi Prints Ltd', payeeLoc:'Lagos, Nigeria', bank:'Zenith Bank', acct:'2087754310', amount:4800,
+    ref:'Urgent settlement · INV-0461', status:'new',
+    invoice:{no:'INV-0461', date:'11 Oct 2026', from:'Adeyemi Prints Ltd', addr:'14 Adeola Odeku St, Victoria Island, Lagos', rc:'RC 1543210',
+      lines:[['Seasonal catalogue print run (2,000 units)',3600],['Rush delivery',1200]], bankName:'Adeyemi Prints Ltd', bankBank:'Zenith Bank', bankAcct:'2087754310', tampered:true},
+    email:{from:'accounts@adeyemi-prlnts.com', to:'finance@hartwellstudio.co.uk', date:'11 Oct 2026, 23:48', subj:'RE: INV-0461 urgent',
+      body:[['e1','Hi, please process INV-0461 today.'],['e2','Our GTBank account is currently under audit so kindly use our new Zenith account on the attached invoice.'],['e3','I am travelling so please do not call, just reply here once sent.']]},
+    history:[['12 Mar 2026',950,'GTBank ****6789'],['09 Apr 2026',1100,'GTBank ****6789'],['14 May 2026',800,'GTBank ****6789'],['11 Jun 2026',1350,'GTBank ****6789'],['16 Jul 2026',1200,'GTBank ****6789'],['10 Sep 2026',1050,'GTBank ****6789']],
+    checks:[
+      {s:'fail',t:'Bank details changed',d:'All 6 previous payments went to GTBank ****6789. This one goes to Zenith Bank ****4310, an account never used before.',src:'Payment history vs invoice bank details',ev:'hist'},
+      {s:'fail',t:'Payee name does NOT match the account',d:'Zenith account 2087754310 is registered to ADEBAYO OKON, a personal account. The payment says Adeyemi Prints Ltd.',src:'Nigerian bank name lookup (mocked)',ev:'inv-bank'},
+      {s:'warn',t:'Invoice looks edited',d:'The bank-details block uses a different font and spacing from the rest of the document. The rest matches earlier Adeyemi invoices.',src:'Invoice INV-0461 · bank details block',ev:'inv-bank'},
+      {s:'fail',t:'Pressure and "don’t call" language',d:'Sent 23:48 from adeyemi-prlnts.com ("l" swapped for "i" lookalike). Says urgent, account "under audit", and asks the client not to call. Classic invoice-redirection script.',src:'Client’s email, lines 2–3',ev:'e2,e3'},
+      {s:'warn',t:'Amount unusual',d:'£4,800 is 3.5× the largest previous payment (£1,350) to this payee.',src:'Payment history',ev:'inv-total'}
+    ],
+    verdict:{k:'hold',title:'HOLD: likely invoice redirection fraud',text:'Money not sent. Next step: call Adeyemi Prints on the number already on file (+234 803 555 0142), not one from the email. Sent to the analyst queue with this summary.'}
+  }
+];
+const PRESET_HELD = {id:'CL-2036', time:'13:41', payer:'Okoro Foods UK Ltd', payee:'Eze & Sons Trading', amount:9800, status:'hold',
+  summary:'Name matches and invoice agrees, but this is the first payment to this payee and £9,800 is above the customer’s usual £2–4k. No fraud signals in documents. Suggest: confirm the new supplier relationship with the customer, then approve.'};
+const BG = [
+  {id:'CL-2038', time:'13:55', payer:'Bright Path Edu Ltd', payee:'Unilag Bursary Office', amount:3200, status:'clear'},
+  {id:'CL-2039', time:'13:58', payer:'Moss & Reed LLP', payee:'Okafor Logistics', amount:640, status:'clear'}
+];
+
+const $ = s=>document.querySelector(s);
+const fmt = n=>'£'+n.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtN = n=>'₦'+Math.round(n).toLocaleString('en-GB');
+let current = 'CL-2041', running = false;
+const state = {}; CASES.forEach(c=>state[c.id]={status:c.status, shown:0});
+const held = [PRESET_HELD];
+const logRows = [['13:41','CL-2036 held for analyst: first payment to new payee, above usual amount'],['13:55','CL-2038 auto-cleared in 6.1s (5/5 checks)'],['13:58','CL-2039 auto-cleared in 5.4s (5/5 checks)']];
+let stats = {total:214, clear:196, held:18};
+
+function pill(st){const m={new:['new','To check'],clear:['clear','Cleared'],hold:['hold','Held'],done:['done','Decided']};const[c,t]=m[st];return `<span class="pill ${c}">${t}</span>`}
+
+function renderQueue(){
+  const items = [...CASES.map(c=>({...c,status:state[c.id].status})), ...BG].sort((a,b)=>b.time.localeCompare(a.time));
+  $('#queue').innerHTML = items.map(c=>`<li><button class="qi" data-id="${c.id}" ${c.id===current?'aria-current="true"':''} ${BG.includes(c)?'disabled':''}>
+    <span class="r1"><span>${c.payee}</span><span class="amt">${fmt(c.amount)}</span></span>
+    <span class="r2"><span>${c.id} · ${c.time} · from ${c.payer}</span>${pill(c.status)}</span></button></li>`).join('');
+  document.querySelectorAll('.qi[data-id]').forEach(b=>b.onclick=()=>{if(running)return;current=b.dataset.id;renderQueue();renderWork()});
+}
+
+function invoiceHTML(c){
+  const v=c.invoice;
+  return `<div class="paper" aria-label="Invoice ${v.no}">
+    <div class="row"><div class="ev" data-ev="inv-from"><h4>${v.from}</h4><div>${v.addr}</div><div>${v.rc}</div></div><div style="text-align:right"><b>INVOICE ${v.no}</b><div>${v.date}</div><div>Bill to: Hartwell Studio Ltd, London</div></div></div>
+    <table class="ev" data-ev="inv-lines">${v.lines.map(l=>`<tr><td>${l[0]}</td><td>${fmt(l[1])}</td></tr>`).join('')}</table>
+    <table><tr class="tot"><td>Total due (GBP)</td><td><span class="ev" data-ev="inv-total">${fmt(v.lines.reduce((a,l)=>a+l[1],0))}</span></td></tr></table>
+    <div class="ev ${v.tampered?'tamper':''}" data-ev="inv-bank"><b>Pay to:</b> ${v.bankName} · ${v.bankBank} · Acct ${v.bankAcct}</div>
+  </div>`;
+}
+function emailHTML(c){
+  if(!c.email) return '';
+  const e=c.email;
+  return `<div class="panel email"><div class="label">Email attached by customer</div>
+    <div class="meta"><span>From: ${e.from}</span><span>To: ${e.to}</span><span>${e.date} · ${e.subj}</span></div>
+    ${e.body.map(([id,t])=>`<p class="ev" data-ev="${id}">${t}</p>`).join('')}</div>`;
+}
+function histHTML(c){
+  return `<div class="panel hist"><div class="label">Previous payments to this payee</div><div class="tablewrap"><table>
+    <tr><th>Date</th><th>Amount</th><th>Paid to</th></tr>
+    ${c.history.map(h=>`<tr class="ev" data-ev="hist"><td>${h[0]}</td><td>${fmt(h[1])}</td><td>${h[2]}</td></tr>`).join('')}
+  </table></div></div>`;
+}
+
+function renderWork(){
+  const c = CASES.find(x=>x.id===current), st = state[c.id];
+  const done = st.shown>=c.checks.length;
+  $('#work').innerHTML = `
+    <div class="panel payhead">
+      <div class="runbar" style="justify-content:space-between"><span class="label">${c.id} · received ${c.time} · SWIFT pacs.008</span>${pill(st.status)}</div>
+      <div class="route">
+        <div class="party"><span class="label">From</span><b>${c.payer}</b><span class="small">${c.payerLoc}</span></div>
+        <div class="arrow"><span class="big">${fmt(c.amount)}</span>→ ${fmtN(c.amount*GBPNGN)}</div>
+        <div class="party"><span class="label">To</span><b>${c.payee}</b><span class="small">${c.payeeLoc} · ${c.bank} ${c.acct}</span></div>
+      </div>
+      <div class="facts">
+        <div><span class="label">Reference</span><span class="v">${c.ref}</span></div>
+        <div><span class="label">Route</span><span class="v">Northgate → correspondent → ${c.bank}</span></div>
+        <div><span class="label">Attachments</span><span class="v">Invoice ${c.invoice.no}${c.email?' + email':''}</span></div>
+      </div>
+      <div class="runbar">
+        <button class="btn" id="run" ${st.shown>0?'disabled':''}>${st.shown>0?(done?'Check complete':'Checking…'):'Run ClearLane check'}</button>
+        <span class="vs">Manual review today: <b>3–10 days</b> · ClearLane: <b id="timer">${done?(c.verdict.k==='clear'?'8.2s':'6.7s'):'0.0s'}</b></span>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="docs">
+        <div class="label">Evidence ClearLane reads · click a check to see its source</div>
+        ${invoiceHTML(c)}${emailHTML(c)}${histHTML(c)}
+      </div>
+      <div class="panel checks">
+        <div class="label">AI checks</div>
+        <ol id="cks">${c.checks.map((k,i)=>ckHTML(k,i<st.shown)).join('')}</ol>
+        <div id="verdict">${done?verdictHTML(c):''}</div>
+      </div>
+    </div>`;
+  $('#run').onclick=()=>run(c);
+  wireChecks(c);
+}
+function ckHTML(k,shown){
+  if(!shown) return `<li><div class="ck pending"><span class="ic">·</span><span class="t">${k.t}</span><span class="d">Waiting…</span></div></li>`;
+  const ic={pass:'✓',warn:'!',fail:'✕'}[k.s];
+  return `<li><button class="ck ${k.s}" data-ev="${k.ev}"><span class="ic">${ic}</span><span class="t">${k.t}</span><span class="d">${k.d}</span><span class="src">Source: ${k.src}</span></button></li>`;
+}
+function verdictHTML(c){
+  const v=c.verdict;
+  const pack = v.k==='clear'
+? `ClearLane evidence pack v1 · ${c.id}
+attached to: pacs.008 SupplementaryData
+payee_name_match: PASS (bank lookup)
+invoice_match: PASS (INV-0457, £1,200.00)
+sanctions: 1 near-match CLEARED
+  reason: individual b.1961 ≠ company RC 1543210
+behaviour: PASS (7th payment, same account)
+decision: AUTO-CLEAR · model + rules v0.3
+signed: Northgate Bank · ${c.time}:08`
+: `ClearLane case summary · ${c.id}
+decision: HOLD → analyst queue
+signals: account changed, name mismatch,
+  invoice edited, lookalike sender domain,
+  "do not call" pressure, amount 3.5× usual
+recommended: call supplier on file number`;
+  return `<div class="verdict ${v.k}"><h3>${v.k==='clear'?'✓ ':'✕ '}${v.title}</h3><p>${v.text}</p></div>
+    <div style="display:grid;gap:6px;margin-top:12px"><span class="label">${v.k==='clear'?'Evidence pack sent with the payment':'Summary sent to analyst'}</span><pre class="pack">${pack}</pre></div>`;
+}
+function wireChecks(){
+  document.querySelectorAll('.ck[data-ev]').forEach(b=>{
+    const on=()=>{clearHL();b.dataset.ev.split(',').forEach(id=>document.querySelectorAll(`.ev[data-ev="${id}"]`).forEach(e=>e.classList.add('hl')))};
+    b.onmouseenter=on;b.onfocus=on;b.onclick=on;b.onmouseleave=clearHL;
+  });
+}
+function clearHL(){document.querySelectorAll('.ev.hl').forEach(e=>e.classList.remove('hl'))}
+
+function run(c){
+  if(running) return; running=true;
+  const st=state[c.id]; const total = c.verdict.k==='clear'?8.2:6.7; const t0=performance.now();
+  $('#run').disabled=true; $('#run').textContent='Checking…';
+  const tick=setInterval(()=>{const el=$('#timer'); if(el) el.textContent=Math.min(total,(performance.now()-t0)/1000*(total/((c.checks.length)*1.1))).toFixed(1)+'s'},100);
+  const step=()=>{
+    const lis=document.querySelectorAll('#cks li');
+    if(st.shown<c.checks.length){
+      const li=lis[st.shown]; li.querySelector('.d').innerHTML='<span class="spin"></span> Reading evidence…';
+      setTimeout(()=>{
+        st.shown++; li.outerHTML=ckHTML(c.checks[st.shown-1],true); wireChecks();
+        const k=c.checks[st.shown-1]; document.querySelectorAll(`.ck[data-ev="${k.ev}"]`).forEach(b=>b.onmouseenter());
+        setTimeout(()=>{clearHL();step()},450);
+      },650);
+    } else {
+      clearInterval(tick); $('#timer').textContent=total.toFixed(1)+'s';
+      st.status=c.verdict.k; $('#verdict').innerHTML=verdictHTML(c); $('#run').textContent='Check complete';
+      if(c.verdict.k==='clear'){stats.clear++; logRows.unshift([c.time,`${c.id} auto-cleared in ${total}s (5/5 checks) · evidence pack attached`]);}
+      else{stats.held++; held.unshift({id:c.id,time:c.time,payer:c.payer,payee:c.payee,amount:c.amount,status:'hold',
+        summary:'Bank details changed to a never-used personal account (ADEBAYO OKON) that doesn’t match the payee. Invoice bank block appears edited; email came from lookalike domain adeyemi-prlnts.com at 23:48 asking the client not to call. Amount 3.5× usual. Recommend: reject unless supplier confirms by phone on file number +234 803 555 0142.'});
+        logRows.unshift([c.time,`${c.id} HELD for analyst: likely invoice redirection fraud (3 fails, 2 warnings)`]);}
+      stats.total++; running=false; renderQueue(); renderAnalyst();
+    }
+  };
+  step();
+}
+
+function renderAnalyst(){
+  const open = held.filter(h=>h.status==='hold');
+  $('#heldN').textContent=open.length; $('#heldN').hidden=!open.length;
+  $('#sTotal').textContent=stats.total; $('#sClear').textContent=stats.clear; $('#sHeld').textContent=stats.held;
+  $('#aq').innerHTML = held.map(h=>`<div class="panel acase">
+    <div class="r1"><b>${h.payer} → ${h.payee}</b><span class="amt"><b>${fmt(h.amount)}</b> ${pill(h.status)}</span></div>
+    <span class="label">${h.id} · held ${h.time}</span>
+    <div class="sum"><span class="label">ClearLane summary</span><span>${h.summary}</span></div>
+    ${h.status==='hold'?`<div class="acts"><button class="btn bad" data-act="reject" data-id="${h.id}">Reject &amp; alert customer</button><button class="btn ghost" data-act="call" data-id="${h.id}">Log: supplier called</button><button class="btn ghost" data-act="approve" data-id="${h.id}">Approve &amp; release</button></div>`:`<span class="vs">Decision: <b>${h.decision}</b></span>`}
+  </div>`).join('');
+  document.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{
+    const h=held.find(x=>x.id===b.dataset.id); const now=new Date().toTimeString().slice(0,5);
+    if(b.dataset.act==='call'){logRows.unshift([now,`${h.id} analyst logged call to supplier on file number`]); renderAnalyst(); return;}
+    h.status='done'; h.decision=b.dataset.act==='reject'?'Rejected, customer alerted':'Approved and released';
+    if(state[h.id]) state[h.id].status='done';
+    logRows.unshift([now,`${h.id} ${h.decision.toLowerCase()} by analyst J. Mensah`]);
+    renderAnalyst(); renderQueue();
+  });
+  $('#log').innerHTML = logRows.map(r=>`<div><span>${r[0]}</span>${r[1]}</div>`).join('');
+}
+
+function show(tab){
+  const pay = tab==='pay';
+  $('#view-pay').hidden=!pay; $('#view-an').hidden=pay;
+  $('#tab-pay').setAttribute('aria-selected',pay); $('#tab-an').setAttribute('aria-selected',!pay);
+}
+$('#tab-pay').onclick=()=>show('pay'); $('#tab-an').onclick=()=>show('an');
+renderQueue(); renderWork(); renderAnalyst();
+</script>
