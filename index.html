@@ -7,15 +7,15 @@
   --bg:#f3f5f4; --panel:#ffffff; --fg:#14201d; --muted:#5d6b67; --line:#d9e0dd;
   --accent:#0b6e61; --accent-soft:#e1f1ed;
   --ok:#14804a; --ok-soft:#e2f4ea; --warn:#9a6400; --warn-soft:#fbf0d9; --bad:#c2352b; --bad-soft:#fbe6e3;
-  --paper:#fffefb; --paper-ink:#1c1c1c; --paper-line:#e6e2d8; --hl:#ffe58a;
+  --paper:#fffefb; --paper-ink:#1c1c1c; --paper-line:#e6e2d8; --hl:#ffe58a; --bezel:#1b2421;
   --sans:"IBM Plex Sans","Segoe UI",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace; --serif:"IBM Plex Serif",Georgia,serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0d1513; --panel:#14201d; --fg:#e4ecea; --muted:#93a39f; --line:#26332f;
-  --accent:#3fc1ab; --accent-soft:#163a33; --ok:#4fd08a; --ok-soft:#143323; --warn:#f0b443; --warn-soft:#3a2d12; --bad:#ff7b6f; --bad-soft:#3d1c19; color-scheme:dark}}
+  --accent:#3fc1ab; --accent-soft:#163a33; --ok:#4fd08a; --ok-soft:#143323; --warn:#f0b443; --warn-soft:#3a2d12; --bad:#ff7b6f; --bad-soft:#3d1c19; --bezel:#33433f; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0d1513; --panel:#14201d; --fg:#e4ecea; --muted:#93a39f; --line:#26332f;
-  --accent:#3fc1ab; --accent-soft:#163a33; --ok:#4fd08a; --ok-soft:#143323; --warn:#f0b443; --warn-soft:#3a2d12; --bad:#ff7b6f; --bad-soft:#3d1c19; color-scheme:dark}
+  --accent:#3fc1ab; --accent-soft:#163a33; --ok:#4fd08a; --ok-soft:#143323; --warn:#f0b443; --warn-soft:#3a2d12; --bad:#ff7b6f; --bad-soft:#3d1c19; --bezel:#33433f; color-scheme:dark}
 
 body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.45}
 button{font:inherit;cursor:pointer}
@@ -137,6 +137,51 @@ button{font:inherit;cursor:pointer}
 .log{padding:14px;display:grid;gap:6px;font-family:var(--mono);font-size:12px}
 .log div{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px}
 .log span{color:var(--muted)}
+/* end-to-end story view */
+.intro{padding:14px 16px;display:flex;gap:12px 20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.intro p{margin:0;max-width:68ch;font-size:14.5px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:8px;padding:8px 12px;font-weight:500;font-size:13.5px}
+.seg button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.e2e{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr) minmax(0,300px);gap:20px;align-items:start;margin-top:16px}
+@media (max-width:1000px){.e2e{grid-template-columns:minmax(0,1fr)}}
+.col{display:grid;gap:8px;min-width:0}
+.col>.label{text-align:center}
+.phone{width:100%;max-width:300px;margin:0 auto;border:10px solid var(--bezel);border-radius:34px;background:var(--panel);min-height:560px;padding:16px 14px;display:grid;align-content:start;gap:12px;box-sizing:border-box}
+.phone .bar{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.phone .app{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+.phone .app i{width:18px;height:18px;border-radius:5px;background:var(--accent);display:inline-block}
+.phone .app i.ng{background:var(--warn)}
+.fld{display:grid;gap:2px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.fld .v{font-weight:600;overflow-wrap:anywhere}
+.fld .v.big{font-size:24px;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;gap:6px;align-items:center;font-family:var(--mono);font-size:11.5px;border:1px dashed var(--line);border-radius:6px;padding:5px 8px;color:var(--muted)}
+.phone .btn{width:100%;padding:12px}
+.state{display:grid;gap:10px;justify-items:center;text-align:center;padding-top:30px}
+.state .big{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-size:30px;font-weight:700}
+.state .big.ok{background:var(--ok-soft);color:var(--ok)}
+.state .big.bad{background:var(--bad-soft);color:var(--bad)}
+.state h3{margin:0;font-size:20px}
+.state p{margin:0;font-size:14px;color:var(--muted)}
+.warnbox{background:var(--bad-soft);border-radius:10px;padding:12px;display:grid;gap:6px;text-align:left;font-size:13.5px}
+.warnbox ul{margin:0;padding-left:18px;display:grid;gap:3px}
+.notif{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:4px;text-align:left}
+.notif b{font-size:17px;font-variant-numeric:tabular-nums}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.cmp div{border-radius:10px;padding:10px;display:grid;gap:2px}
+.cmp .now{background:var(--ok-soft);color:var(--ok)}
+.cmp .old{background:var(--bg);color:var(--muted);text-decoration:line-through}
+.cmp b{font-size:20px}
+.midp{padding:16px;display:grid;gap:12px}
+.mini{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.mini li{display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;align-items:start;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.mini li.pending{opacity:.45}
+.mini .ic{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:var(--line);color:var(--muted)}
+.mini li.pass .ic{background:var(--ok-soft);color:var(--ok)}
+.mini li.warn .ic{background:var(--warn-soft);color:var(--warn)}
+.mini li.fail .ic{background:var(--bad-soft);color:var(--bad)}
+.mini small{display:block;color:var(--muted);font-size:12.5px}
+.linkbtn{background:none;border:0;color:var(--accent);padding:0;font-weight:600;text-align:left}
 h2{font-size:20px;margin:0}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.spin{animation:none}.ev{transition:none}}
@@ -146,13 +191,30 @@ h2{font-size:20px;margin:0}
   <div class="brand"><div class="mark" aria-hidden="true"></div><div><b>ClearLane</b><br><span>Northgate Bank · Cross-border payments desk · GBP → NGN</span></div></div>
   <span class="demo">Demo · fictional bank &amp; data</span>
   <div class="tabs" role="tablist">
-    <button class="tab" role="tab" id="tab-pay" aria-selected="true">Payment checks</button>
+    <button class="tab" role="tab" id="tab-story" aria-selected="true">End-to-end</button>
+    <button class="tab" role="tab" id="tab-pay" aria-selected="false">Bank: payment checks</button>
     <button class="tab" role="tab" id="tab-an" aria-selected="false">Analyst queue<span class="n" id="heldN">1</span></button>
   </div>
 </div></div>
 
 <div class="wrap">
-  <div id="view-pay" class="layout">
+  <div id="view-story">
+    <div class="panel intro">
+      <p><b>Meet Chidi.</b> He runs a print studio in Lagos. His London client's last £1,200 payment was held <b>9 days</b> for manual checks, and he couldn't pay his staff. Here's the same payment with ClearLane inside the bank.</p>
+      <div class="seg" role="group" aria-label="Demo case">
+        <button data-case="CL-2041" aria-pressed="true">Case 1 · Real invoice</button>
+        <button data-case="CL-2042" aria-pressed="false">Case 2 · Fake invoice (scam)</button>
+        <button id="reset">Reset</button>
+      </div>
+    </div>
+    <div class="e2e">
+      <div class="col"><span class="label">1 · Sender · London business</span><div class="phone" id="phS"></div></div>
+      <div class="col"><span class="label">2 · Inside the bank · ClearLane</span><div class="panel midp" id="mid"></div></div>
+      <div class="col"><span class="label">3 · Receiver · Chidi in Lagos</span><div class="phone" id="phR"></div></div>
+    </div>
+  </div>
+
+  <div id="view-pay" class="layout" hidden>
     <aside class="panel queue">
       <div class="label">Incoming · today</div>
       <ul id="queue"></ul>
@@ -350,16 +412,83 @@ function run(c){
       },650);
     } else {
       clearInterval(tick); $('#timer').textContent=total.toFixed(1)+'s';
-      st.status=c.verdict.k; $('#verdict').innerHTML=verdictHTML(c); $('#run').textContent='Check complete';
-      if(c.verdict.k==='clear'){stats.clear++; logRows.unshift([c.time,`${c.id} auto-cleared in ${total}s (5/5 checks) · evidence pack attached`]);}
-      else{stats.held++; held.unshift({id:c.id,time:c.time,payer:c.payer,payee:c.payee,amount:c.amount,status:'hold',
-        summary:'Bank details changed to a never-used personal account (ADEBAYO OKON) that doesn’t match the payee. Invoice bank block appears edited; email came from lookalike domain adeyemi-prlnts.com at 23:48 asking the client not to call. Amount 3.5× usual. Recommend: reject unless supplier confirms by phone on file number +234 803 555 0142.'});
-        logRows.unshift([c.time,`${c.id} HELD for analyst: likely invoice redirection fraud (3 fails, 2 warnings)`]);}
-      stats.total++; running=false; renderQueue(); renderAnalyst();
+      $('#verdict').innerHTML=verdictHTML(c); $('#run').textContent='Check complete';
+      finalize(c); running=false;
     }
   };
   step();
 }
+function finalize(c){
+      const st=state[c.id]; if(st.status!=='new') return;
+      const total = c.verdict.k==='clear'?8.2:6.7;
+      st.shown=c.checks.length; st.status=c.verdict.k;
+      if(c.verdict.k==='clear'){stats.clear++; logRows.unshift([c.time,`${c.id} auto-cleared in ${total}s (5/5 checks) · evidence pack attached`]);}
+      else{stats.held++; held.unshift({id:c.id,time:c.time,payer:c.payer,payee:c.payee,amount:c.amount,status:'hold',
+        summary:'Bank details changed to a never-used personal account (ADEBAYO OKON) that doesn’t match the payee. Invoice bank block appears edited; email came from lookalike domain adeyemi-prlnts.com at 23:48 asking the client not to call. Amount 3.5× usual. Recommend: reject unless supplier confirms by phone on file number +234 803 555 0142.'});
+        logRows.unshift([c.time,`${c.id} HELD for analyst: likely invoice redirection fraud (3 fails, 2 warnings)`]);}
+      stats.total++; renderQueue(); renderWork(); renderAnalyst();
+}
+
+/* ---- end-to-end story ---- */
+let sc='CL-2041', sStage='ready', sShown=0, sTimer=null;
+function renderStory(){
+  const c=CASES.find(x=>x.id===sc), ngn=fmtN(c.amount*GBPNGN), fraud=c.verdict.k==='hold';
+  document.querySelectorAll('.seg [data-case]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.case===sc));
+  const secs = fraud?'6.7':'8.2';
+  // sender phone
+  let s=`<div class="bar"><span>${c.time}</span><span>5G ▮▮▮</span></div><div class="app"><i></i>Northgate Business</div>`;
+  if(sStage==='ready'){
+    s+=`<span class="label">Pay a supplier abroad</span>
+      <div class="fld"><span class="label">To</span><span class="v">${c.payee}</span></div>
+      <div class="fld"><span class="label">Bank · account</span><span class="v">${c.bank} · ${c.acct}</span></div>
+      <div class="fld"><span class="label">You send</span><span class="v big">${fmt(c.amount)}</span><span class="vs">They get ${ngn}</span></div>
+      <div class="fld"><span class="label">Reference</span><span class="v">${c.ref}</span></div>
+      <span class="chip">PDF · Invoice ${c.invoice.no} attached</span>
+      ${fraud?'<span class="vs">Bank details copied from an emailed invoice</span>':''}
+      <button class="btn" id="send">Send ${fmt(c.amount)}</button>`;
+  } else if(sStage==='checking'){
+    s+=`<div class="state"><span class="spin" style="width:40px;height:40px;border-width:4px"></span><h3>Checking your payment</h3><p>Usually under 10 seconds</p></div>`;
+  } else if(!fraud){
+    s+=`<div class="state"><div class="big ok">✓</div><h3>Sent</h3><p>Checked and cleared in ${secs}s.<br>${c.payee} receives ${ngn} now.</p></div>`;
+  } else {
+    s+=`<div class="state"><div class="big bad">!</div><h3>Payment paused</h3><p>This looks like a scam. Your money has not left your account.</p></div>
+      <div class="warnbox"><b>Why we paused it</b><ul><li>Bank details changed from the account you always pay</li><li>That account belongs to someone else (ADEBAYO OKON)</li><li>The email came from a fake address: adeyemi-pr<b>l</b>nts.com</li></ul>
+      <b>Call Adeyemi Prints on the number you already have: +234 803 555 0142</b></div>`;
+  }
+  $('#phS').innerHTML=s;
+  const sb=$('#send'); if(sb) sb.onclick=storyRun;
+  // middle
+  const ic={pass:'✓',warn:'!',fail:'✕'};
+  $('#mid').innerHTML=`<div class="runbar" style="justify-content:space-between"><span class="label">${c.id} · ${fmt(c.amount)} · GBP → NGN</span>${sStage==='done'?pill(c.verdict.k):(sStage==='checking'?'<span class="pill new">Checking</span>':'<span class="pill done">Waiting for payment</span>')}</div>
+    <ol class="mini">${c.checks.map((k,i)=>{const on=i<sShown;return `<li class="${on?k.s:'pending'}"><span class="ic">${on?ic[k.s]:(sStage==='checking'&&i===sShown?'<span class="spin"></span>':'·')}</span><span>${k.t}${on?`<small>${k.d}</small>`:''}</span></li>`}).join('')}</ol>
+    ${sStage==='done'?`<div class="verdict ${c.verdict.k}"><h3>${fraud?'✕ ':'✓ '}${c.verdict.title}</h3><p>${fraud?'Held for a human analyst. The AI never releases a flagged payment.':'Evidence pack attached, so the middle bank and '+c.bank+' don’t ask for documents again.'}</p></div>`:''}
+    <button class="linkbtn" id="toBank">Open the full bank view →</button>`;
+  $('#toBank').onclick=()=>{if(running)return;current=sc;renderQueue();renderWork();show('pay')};
+  // receiver phone
+  let r=`<div class="bar"><span>${c.time}</span><span>MTN ▮▮▮</span></div><div class="app"><i class="ng"></i>Chidi's phone</div>`;
+  if(sStage!=='done'){
+    r+=`<div class="state"><p>Waiting for ${fmt(c.amount)} from Hartwell Studio…</p><p>Last time: 9 days.</p></div>`;
+  } else if(!fraud){
+    r+=`<div class="notif"><span class="label">${c.bank} · Credit alert</span><b>+${ngn}</b><span class="vs">From HARTWELL STUDIO LTD · ${c.invoice.no}</span></div>
+      <div class="state" style="padding-top:12px"><h3>Paid. Staff paid on time.</h3>
+      <div class="cmp"><div class="now"><span class="label">With ClearLane</span><b>${secs} sec</b></div><div class="old"><span class="label">Last time</span><b>9 days</b></div></div></div>`;
+  } else {
+    r+=`<div class="state"><div class="big ok">✓</div><h3>Nothing lost</h3><p>The scammer got nothing. ${fmt(c.amount)} stays with Hartwell Studio.</p><p>Chidi's real account is untouched. His client calls him to check, and then pays the right account.</p></div>`;
+  }
+  $('#phR').innerHTML=r;
+}
+function storyRun(){
+  if(sStage!=='ready') return;
+  const c=CASES.find(x=>x.id===sc); sStage='checking'; sShown=0; renderStory();
+  sTimer=setInterval(()=>{
+    sShown++;
+    if(sShown>=c.checks.length){clearInterval(sTimer); sTimer=null; setTimeout(()=>{sStage='done'; finalize(c); renderStory()},500);}
+    renderStory();
+  },900);
+}
+function storyReset(id){ if(sTimer){clearInterval(sTimer);sTimer=null} if(id) sc=id; sStage='ready'; sShown=0; renderStory(); }
+document.querySelectorAll('.seg [data-case]').forEach(b=>b.onclick=()=>storyReset(b.dataset.case));
+$('#reset').onclick=()=>storyReset();
 
 function renderAnalyst(){
   const open = held.filter(h=>h.status==='hold');
@@ -383,10 +512,9 @@ function renderAnalyst(){
 }
 
 function show(tab){
-  const pay = tab==='pay';
-  $('#view-pay').hidden=!pay; $('#view-an').hidden=pay;
-  $('#tab-pay').setAttribute('aria-selected',pay); $('#tab-an').setAttribute('aria-selected',!pay);
+  ['story','pay','an'].forEach(t=>{$('#view-'+t).hidden=t!==tab; $('#tab-'+t).setAttribute('aria-selected',t===tab)});
+  window.scrollTo(0,0);
 }
-$('#tab-pay').onclick=()=>show('pay'); $('#tab-an').onclick=()=>show('an');
-renderQueue(); renderWork(); renderAnalyst();
+$('#tab-story').onclick=()=>show('story'); $('#tab-pay').onclick=()=>show('pay'); $('#tab-an').onclick=()=>show('an');
+renderQueue(); renderWork(); renderAnalyst(); renderStory();
 </script>
