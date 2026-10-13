@@ -1,0 +1,4 @@
+*.jpg
+.env
+node_modules/
+__pycache__/
